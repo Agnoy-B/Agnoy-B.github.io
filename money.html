@@ -1,0 +1,2121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>基金数据中心</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Noto+Sans+SC:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #080b12;
+            --bg-base: #0c1019;
+            --bg-surface: #131825;
+            --bg-elevated: #1a2035;
+            --bg-hover: #212a42;
+            --border: #1e2740;
+            --border-light: #2a3555;
+            --accent: #e4a853;
+            --accent-dim: #b8873d;
+            --accent-glow: rgba(228, 168, 83, 0.15);
+            --green: #22c55e;
+            --green-dim: rgba(34, 197, 94, 0.12);
+            --red: #ef4444;
+            --red-dim: rgba(239, 68, 68, 0.12);
+            --text-primary: #e8e6e1;
+            --text-secondary: #8b93a8;
+            --text-muted: #525a6e;
+            --font-display: 'Bebas Neue', sans-serif;
+            --font-mono: 'DM Mono', monospace;
+            --font-body: 'Noto Sans SC', sans-serif;
+            --star-off: #3a3f50;
+            --star-on: #f5c842;
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .ambient {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            filter: blur(150px);
+            opacity: 0.07;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .ambient--gold {
+            background: var(--accent);
+            top: -200px;
+            right: -100px;
+        }
+
+        .ambient--blue {
+            background: #3b82f6;
+            bottom: -200px;
+            left: -100px;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 32px;
+        }
+
+        /* ── Header ── */
+        header {
+            padding: 32px 0 24px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 32px;
+        }
+
+        .header-inner {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+        }
+
+        .logo h1 {
+            font-family: var(--font-display);
+            font-size: 42px;
+            letter-spacing: 4px;
+            color: var(--accent);
+            line-height: 1;
+        }
+
+        .logo span {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .header-meta {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            gap: 20px;
+        }
+
+        .header-meta .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--green);
+            display: inline-block;
+            margin-right: 6px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: 0.3
+            }
+        }
+
+        /* ── Search ── */
+        .search-section {
+            margin-bottom: 36px;
+            position: relative;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 0;
+            max-width: 680px;
+        }
+
+        .search-input-wrap {
+            flex: 1;
+            position: relative;
+        }
+
+        .search-input-wrap svg {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 14px 16px 14px 46px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-right: none;
+            border-radius: 8px 0 0 8px;
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-dim);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .search-btn {
+            padding: 14px 28px;
+            background: var(--accent);
+            border: 1px solid var(--accent);
+            border-radius: 0 8px 8px 0;
+            color: var(--bg-deep);
+            font-family: var(--font-body);
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s, letter-spacing 0.3s;
+            white-space: nowrap;
+        }
+
+        .search-btn:hover {
+            background: #f0b960;
+            letter-spacing: 1px;
+        }
+
+        .search-hint {
+            margin-top: 10px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .search-hint code {
+            color: var(--accent-dim);
+            background: var(--bg-surface);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+        }
+
+        /* ── Search Dropdown ── */
+        .search-dropdown {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            width: 100%;
+            max-width: 680px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            overflow: hidden;
+            z-index: 100;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            display: none;
+            animation: dropIn 0.2s ease;
+        }
+
+        .search-dropdown.show {
+            display: block;
+        }
+
+        @keyframes dropIn {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .search-dropdown-header {
+            padding: 10px 16px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .search-dropdown-header .result-count {
+            background: var(--bg-surface);
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: var(--accent-dim);
+        }
+
+        .search-dropdown-list {
+            max-height: 360px;
+            overflow-y: auto;
+        }
+
+        .search-dropdown-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .search-dropdown-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .search-dropdown-list::-webkit-scrollbar-thumb {
+            background: var(--border-light);
+            border-radius: 3px;
+        }
+
+        .search-result-item {
+            padding: 14px 16px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.15s;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-result-item:hover {
+            background: var(--bg-hover);
+        }
+
+        .search-result-item.active {
+            background: var(--bg-hover);
+            border-left: 3px solid var(--accent);
+        }
+
+        .result-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .result-info .result-name {
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .result-info .result-name em {
+            font-style: normal;
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .result-info .result-meta {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 3px;
+        }
+
+        .result-type {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: var(--text-muted);
+            background: var(--bg-surface);
+            padding: 3px 8px;
+            border-radius: 4px;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            margin-left: 12px;
+        }
+
+        .search-dropdown-loading,
+        .search-dropdown-empty {
+            padding: 20px;
+            text-align: center;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .search-dropdown-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .search-dropdown-empty {
+            padding: 24px;
+            font-size: 13px;
+        }
+
+        /* ── Loading ── */
+        .loader {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 20px 0;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .loader-spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error-msg {
+            background: var(--red-dim);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: var(--red);
+            padding: 14px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: var(--font-mono);
+            margin-bottom: 20px;
+        }
+
+        /* ── Fund Detail Card ── */
+        .fund-detail {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 36px;
+            animation: slideDown 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .fund-detail::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), transparent);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fund-detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .fund-name-group h2 {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .fund-name-group .fund-code {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .fund-price-block {
+            text-align: right;
+        }
+
+        .fund-price-block .label {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .fund-price-block .value {
+            font-family: var(--font-display);
+            font-size: 48px;
+            line-height: 1;
+            letter-spacing: 2px;
+        }
+
+        .fund-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+        }
+
+        .metric-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+
+        .metric-card:hover {
+            border-color: var(--border-light);
+            transform: translateY(-2px);
+        }
+
+        .metric-card .metric-label {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .metric-card .metric-value {
+            font-family: var(--font-display);
+            font-size: 28px;
+            letter-spacing: 1px;
+        }
+
+        .fund-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-secondary {
+            padding: 10px 20px;
+            background: transparent;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-family: var(--font-body);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-glow);
+        }
+
+        /* ── Watchlist star button ── */
+        .btn-star {
+            border-color: var(--star-off);
+            color: var(--star-off);
+        }
+
+        .btn-star.is-starred {
+            border-color: var(--star-on);
+            color: var(--star-on);
+            background: rgba(245, 200, 66, 0.08);
+        }
+
+        .btn-star:hover {
+            border-color: var(--star-on) !important;
+            color: var(--star-on) !important;
+            background: rgba(245, 200, 66, 0.1) !important;
+        }
+
+        .btn-star svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+
+        /* ── History Table ── */
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .section-title h3 {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .section-title .line {
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .history-table-wrap {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 36px;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .history-table thead {
+            background: var(--bg-elevated);
+        }
+
+        .history-table th {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-align: left;
+            padding: 14px 20px;
+            font-weight: 400;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .history-table td {
+            padding: 14px 20px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.15s;
+        }
+
+        .history-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .history-table tbody tr:hover td {
+            background: var(--bg-hover);
+        }
+
+        .history-table tbody tr {
+            animation: fadeIn 0.3s ease both;
+        }
+
+        .history-table tbody tr:nth-child(1) {
+            animation-delay: 0.05s;
+        }
+
+        .history-table tbody tr:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .history-table tbody tr:nth-child(3) {
+            animation-delay: 0.15s;
+        }
+
+        .history-table tbody tr:nth-child(4) {
+            animation-delay: 0.2s;
+        }
+
+        .history-table tbody tr:nth-child(5) {
+            animation-delay: 0.25s;
+        }
+
+        .history-table tbody tr:nth-child(6) {
+            animation-delay: 0.3s;
+        }
+
+        .history-table tbody tr:nth-child(7) {
+            animation-delay: 0.35s;
+        }
+
+        .history-table tbody tr:nth-child(8) {
+            animation-delay: 0.4s;
+        }
+
+        .history-table tbody tr:nth-child(9) {
+            animation-delay: 0.45s;
+        }
+
+        .history-table tbody tr:nth-child(10) {
+            animation-delay: 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* ── Popular Grid ── */
+        .popular-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+            margin-bottom: 48px;
+        }
+
+        .popular-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px 24px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            animation: fadeUp 0.5s ease forwards;
+        }
+
+        .popular-card:nth-child(1) {
+            animation-delay: 0.05s
+        }
+
+        .popular-card:nth-child(2) {
+            animation-delay: 0.1s
+        }
+
+        .popular-card:nth-child(3) {
+            animation-delay: 0.15s
+        }
+
+        .popular-card:nth-child(4) {
+            animation-delay: 0.2s
+        }
+
+        .popular-card:nth-child(5) {
+            animation-delay: 0.25s
+        }
+
+        .popular-card:nth-child(6) {
+            animation-delay: 0.3s
+        }
+
+        .popular-card:nth-child(7) {
+            animation-delay: 0.35s
+        }
+
+        .popular-card:nth-child(8) {
+            animation-delay: 0.4s
+        }
+
+        .popular-card:nth-child(9) {
+            animation-delay: 0.45s
+        }
+
+        .popular-card:nth-child(10) {
+            animation-delay: 0.5s
+        }
+
+        .popular-card:nth-child(11) {
+            animation-delay: 0.55s
+        }
+
+        .popular-card:nth-child(12) {
+            animation-delay: 0.6s
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(24px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .popular-card:hover {
+            border-color: var(--accent-dim);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .popular-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+            transform-origin: left;
+        }
+
+        .popular-card:hover::after {
+            transform: scaleX(1);
+        }
+
+        .popular-card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .popular-card-top .name {
+            font-size: 15px;
+            font-weight: 500;
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .popular-card-top .code {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .popular-card-top .change {
+            font-family: var(--font-display);
+            font-size: 28px;
+            letter-spacing: 1px;
+            line-height: 1;
+        }
+
+        .popular-card-bottom {
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* ── Watchlist Section ── */
+        .watchlist-section {
+            margin-bottom: 48px;
+        }
+
+        .section-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .watchlist-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .btn-tiny {
+            padding: 6px 14px;
+            background: transparent;
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        .btn-tiny:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-tiny.danger:hover {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .btn-tiny svg {
+            width: 12px;
+            height: 12px;
+        }
+
+        .watchlist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 14px;
+        }
+
+        .watchlist-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 18px 20px;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            animation: fadeUp 0.45s ease forwards;
+        }
+
+        .watchlist-card:nth-child(1) {
+            animation-delay: 0.03s
+        }
+
+        .watchlist-card:nth-child(2) {
+            animation-delay: 0.06s
+        }
+
+        .watchlist-card:nth-child(3) {
+            animation-delay: 0.09s
+        }
+
+        .watchlist-card:nth-child(4) {
+            animation-delay: 0.12s
+        }
+
+        .watchlist-card:nth-child(5) {
+            animation-delay: 0.15s
+        }
+
+        .watchlist-card:nth-child(6) {
+            animation-delay: 0.18s
+        }
+
+        .watchlist-card:nth-child(7) {
+            animation-delay: 0.21s
+        }
+
+        .watchlist-card:nth-child(8) {
+            animation-delay: 0.24s
+        }
+
+        .watchlist-card:nth-child(9) {
+            animation-delay: 0.27s
+        }
+
+        .watchlist-card:nth-child(10) {
+            animation-delay: 0.30s
+        }
+
+        .watchlist-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: var(--accent);
+            opacity: 0;
+            transition: opacity 0.25s;
+        }
+
+        .watchlist-card:hover {
+            border-color: var(--accent-dim);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+        }
+
+        .watchlist-card:hover::before {
+            opacity: 1;
+        }
+
+        .wl-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .wl-top .wl-name {
+            font-size: 14px;
+            font-weight: 500;
+            max-width: 170px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+        }
+
+        .wl-top .wl-name:hover {
+            color: var(--accent);
+        }
+
+        .wl-top .wl-code {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .wl-top-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .wl-change {
+            font-family: var(--font-display);
+            font-size: 26px;
+            letter-spacing: 1px;
+            line-height: 1;
+        }
+
+        .wl-remove {
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .wl-remove:hover {
+            border-color: var(--danger);
+            color: var(--danger);
+            background: var(--red-dim);
+        }
+
+        .wl-remove svg {
+            width: 13px;
+            height: 13px;
+        }
+
+        .wl-mid {
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .wl-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .wl-bar-wrap {
+            flex: 1;
+            height: 3px;
+            background: var(--bg-elevated);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-right: 12px;
+        }
+
+        .wl-bar {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.6s ease;
+        }
+
+        .wl-time {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        /* Empty watchlist */
+        .watchlist-empty {
+            text-align: center;
+            padding: 48px 20px;
+            background: var(--bg-surface);
+            border: 1px dashed var(--border-light);
+            border-radius: 12px;
+        }
+
+        .watchlist-empty-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 16px;
+            color: var(--text-muted);
+            opacity: 0.4;
+        }
+
+        .watchlist-empty h4 {
+            font-size: 15px;
+            font-weight: 400;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .watchlist-empty p {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* ── Toast ── */
+        .toast {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-light);
+            color: var(--text-primary);
+            padding: 14px 24px;
+            border-radius: 10px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            z-index: 10000;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.toast-success {
+            border-color: var(--green);
+        }
+
+        .toast.toast-warn {
+            border-color: var(--accent);
+        }
+
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 24px 0 40px;
+            margin-top: 20px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        /* ── Confirm Dialog ── */
+        .confirm-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 10001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .confirm-box {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-light);
+            border-radius: 14px;
+            padding: 28px 32px;
+            max-width: 380px;
+            width: 90%;
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+            animation: slideDown 0.25s ease;
+        }
+
+        .confirm-box h4 {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .confirm-box p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .confirm-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn-confirm {
+            padding: 10px 22px;
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: var(--font-body);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-confirm:hover {
+            border-color: var(--text-secondary);
+            color: var(--text-primary);
+        }
+
+        .btn-confirm-danger {
+            padding: 10px 22px;
+            border-radius: 8px;
+            border: 1px solid var(--danger);
+            background: var(--red-dim);
+            color: var(--danger);
+            font-family: var(--font-body);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-confirm-danger:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 16px;
+            }
+
+            .logo h1 {
+                font-size: 30px;
+            }
+
+            .fund-price-block .value {
+                font-size: 36px;
+            }
+
+            .fund-detail {
+                padding: 20px;
+            }
+
+            .popular-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .watchlist-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .search-bar {
+                flex-direction: column;
+            }
+
+            .search-input {
+                border-radius: 8px;
+                border-right: 1px solid var(--border);
+            }
+
+            .search-btn {
+                border-radius: 8px;
+            }
+
+            .search-dropdown {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="ambient ambient--gold"></div>
+    <div class="ambient ambient--blue"></div>
+
+    <div class="container">
+        <header>
+            <div class="header-inner">
+                <div class="logo">
+                    <h1>基金数据</h1>
+                    <span>基金数据中心</span>
+                </div>
+                <div class="header-meta">
+                    <span><span class="dot"></span>LIVE DATA</span>
+                    <span id="currentTime"></span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Search -->
+        <div class="search-section" id="searchSection">
+            <div class="search-bar">
+                <div class="search-input-wrap">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                    <input type="text" class="search-input" id="searchInput" placeholder="输入基金代码或名称，如 110011、白酒、基建 ..."
+                        autocomplete="off">
+                </div>
+                <button class="search-btn" onclick="handleSearch()">查询基金</button>
+            </div>
+            <div class="search-hint">
+                试试 <code>白酒</code> <code>新能源</code> <code>110011</code> <code>沪深300</code>
+            </div>
+            <div class="search-dropdown" id="searchDropdown">
+                <div class="search-dropdown-header">
+                    <span>搜索结果</span>
+                    <span class="result-count" id="resultCount"></span>
+                </div>
+                <div class="search-dropdown-list" id="searchList"></div>
+            </div>
+        </div>
+
+        <div id="errorContainer"></div>
+        <div id="loader" style="display:none;">
+            <div class="loader">
+                <div class="loader-spinner"></div><span>正在从 API 获取数据...</span>
+            </div>
+        </div>
+        <div id="fundDetail" style="display:none;"></div>
+        <div id="historySection" style="display:none;"></div>
+
+        <!-- Watchlist -->
+        <div id="watchlistSection" class="watchlist-section" style="display:none;"></div>
+
+        <!-- Popular -->
+        <div id="popularSection">
+            <div class="section-title">
+                <h3>热门基金实时估值</h3>
+                <div class="line"></div>
+            </div>
+            <div class="popular-grid" id="popularGrid"></div>
+        </div>
+
+        <footer>
+            <span>数据来源：天天基金公开 API · 仅供参考，不构成投资建议</span>
+            <span>基金</span>
+        </footer>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============================================================
+        //  API 服务层
+        // ============================================================
+
+        async function searchFunds(keyword) {
+            const url = `https://fundsuggest.eastmoney.com/FundSearch/api/FundSearchAPI.ashx?callback=CALLBACK&m=1&key=${encodeURIComponent(keyword)}&_=${Date.now()}`;
+            const data = await jsonp(url);
+            if (data && data.Datas) return data.Datas;
+            return [];
+        }
+
+        async function fetchFundEstimate(fundCode) {
+            const url = `https://fundgz.1234567.com.cn/js/${fundCode}.js?rt=${Date.now()}`;
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                const timer = setTimeout(() => { cleanup(); reject(new Error('接口请求超时')); }, 8000);
+                const origCb = window.jsonpgz;
+                function cleanup() {
+                    clearTimeout(timer);
+                    if (script.parentNode) script.parentNode.removeChild(script);
+                    setTimeout(() => { window.jsonpgz = origCb; }, 100);
+                }
+                window.jsonpgz = (data) => { cleanup(); resolve(data); };
+                script.src = url;
+                script.onerror = () => { cleanup(); reject(new Error('无法连接基金 API')); };
+                document.head.appendChild(script);
+            });
+        }
+
+        async function fetchFundHistory(fundCode, page = 1, size = 10) {
+            const url = `https://api.fund.eastmoney.com/f10/lsjz?fundCode=${fundCode}&pageIndex=${page}&pageSize=${size}&startDate=&endDate=&callback=CALLBACK`;
+            return jsonp(url);
+        }
+
+        async function fetchMultipleFunds(codes) {
+            const results = await Promise.all(codes.map(c => fetchFundEstimate(c).catch(() => null)));
+            return results.filter(Boolean);
+        }
+
+        function jsonp(url, callbackName) {
+            return new Promise((resolve, reject) => {
+                const cbName = callbackName || `cb_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+                const script = document.createElement('script');
+                const timer = setTimeout(() => { cleanup(); reject(new Error('请求超时')); }, 10000);
+                function cleanup() {
+                    clearTimeout(timer);
+                    delete window[cbName];
+                    if (script.parentNode) script.parentNode.removeChild(script);
+                }
+                window[cbName] = (data) => { cleanup(); resolve(data); };
+                script.src = url.replace('CALLBACK', cbName);
+                script.onerror = () => { cleanup(); reject(new Error('网络请求失败')); };
+                document.head.appendChild(script);
+            });
+        }
+
+
+        // ============================================================
+        //  自选基金管理
+        // ============================================================
+
+        const WATCHLIST_KEY = 'fund_watchlist_v1';
+
+        /**
+         * 读取自选列表 [{ code, name, addedAt }]
+         */
+        function getWatchlist() {
+            try {
+                return JSON.parse(localStorage.getItem(WATCHLIST_KEY)) || [];
+            } catch { return []; }
+        }
+
+        /**
+         * 保存自选列表
+         */
+        function saveWatchlist(list) {
+            localStorage.setItem(WATCHLIST_KEY, JSON.stringify(list));
+        }
+
+        /**
+         * 判断是否已在自选
+         */
+        function isInWatchlist(code) {
+            return getWatchlist().some(f => f.code === code);
+        }
+
+        /**
+         * 添加到自选
+         */
+        function addToWatchlist(code, name) {
+            const list = getWatchlist();
+            if (list.some(f => f.code === code)) return false;
+            list.push({ code, name: name || code, addedAt: Date.now() });
+            saveWatchlist(list);
+            renderWatchlist();
+            return true;
+        }
+
+        /**
+         * 从自选移除
+         */
+        function removeFromWatchlist(code) {
+            const list = getWatchlist().filter(f => f.code !== code);
+            saveWatchlist(list);
+            renderWatchlist();
+        }
+
+        /**
+         * 清空自选
+         */
+        function clearWatchlist() {
+            saveWatchlist([]);
+            renderWatchlist();
+        }
+
+        /**
+         * 切换自选状态（添加 / 移除）
+         */
+        function toggleWatchlist(code, name) {
+            if (isInWatchlist(code)) {
+                removeFromWatchlist(code);
+                showToast(`已将 ${name || code} 移出自选`);
+                updateStarButtons();
+                return false;
+            } else {
+                addToWatchlist(code, name);
+                showToast(`已将 ${name || code} 加入自选`, 'success');
+                updateStarButtons();
+                return true;
+            }
+        }
+
+        /**
+         * 更新所有星标按钮的状态
+         */
+        function updateStarButtons() {
+            document.querySelectorAll('.btn-star[data-wl-code]').forEach(btn => {
+                const code = btn.dataset.wlCode;
+                const starred = isInWatchlist(code);
+                btn.classList.toggle('is-starred', starred);
+                const label = btn.querySelector('.star-label');
+                if (label) label.textContent = starred ? '已自选' : '加入自选';
+            });
+        }
+
+
+        // ============================================================
+        //  自选列表 UI
+        // ============================================================
+
+        let wlRefreshTimer = null;
+
+        async function renderWatchlist() {
+            const section = $('watchlistSection');
+            const list = getWatchlist();
+
+            if (list.length === 0) {
+                section.style.display = 'block';
+                section.innerHTML = `
+                    <div class="section-title">
+                        <h3>自选基金</h3>
+                        <div class="line"></div>
+                    </div>
+                    <div class="watchlist-empty">
+                        <svg class="watchlist-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                        <h4>暂无自选基金</h4>
+                        <p>搜索基金后点击「加入自选」按钮，即可在此处跟踪关注</p>
+                    </div>`;
+                clearInterval(wlRefreshTimer);
+                return;
+            }
+
+            section.style.display = 'block';
+
+            // 先渲染骨架
+            section.innerHTML = `
+                <div class="section-title">
+                    <div class="section-header-row" style="width:100%">
+                        <div style="display:flex;align-items:center;gap:12px;flex:1;">
+                            <h3>自选基金</h3>
+                            <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);background:var(--bg-surface);padding:2px 8px;border-radius:4px;">${list.length} 只</span>
+                            <div class="line"></div>
+                        </div>
+                        <div class="watchlist-controls">
+                            <button class="btn-tiny" onclick="refreshWatchlist()" title="刷新估值">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                                刷新
+                            </button>
+                            <button class="btn-tiny danger" onclick="confirmClearWatchlist()" title="清空自选">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                清空
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="watchlist-grid" id="watchlistGrid">
+                    ${list.map(f => renderWLSkeleton(f.code)).join('')}
+                </div>`;
+
+            // 加载真实数据
+            const codes = list.map(f => f.code);
+            try {
+                const funds = await fetchMultipleFunds(codes);
+                const grid = $('watchlistGrid');
+                if (!grid) return;
+
+                // 按自选顺序排列，未获取到的显示骨架
+                const dataMap = {};
+                funds.forEach(d => { dataMap[d.fundcode] = d; });
+
+                grid.innerHTML = list.map((f, i) => {
+                    const d = dataMap[f.code];
+                    if (d) return renderWatchlistCard(d, i);
+                    return renderWLPlaceholder(f.code, f.name);
+                }).join('');
+            } catch (err) {
+                console.error('自选基金加载失败', err);
+            }
+
+            // 自动刷新（每 60 秒）
+            clearInterval(wlRefreshTimer);
+            wlRefreshTimer = setInterval(() => refreshWatchlist(true), 60000);
+        }
+
+        function renderWLSkeleton(code) {
+            return `<div class="watchlist-card" style="animation-delay:0s;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <div class="loader-spinner" style="width:14px;height:14px;"></div>
+                    <span style="font-family:var(--font-mono);font-size:12px;color:var(--text-muted);">加载 ${code} ...</span>
+                </div>
+            </div>`;
+        }
+
+        function renderWLPlaceholder(code, name) {
+            return `<div class="watchlist-card" style="border-style:dashed;">
+                <div class="wl-top">
+                    <div>
+                        <div class="wl-name" onclick="selectSearchResult('${code}')">${name || code}</div>
+                        <div class="wl-code">${code}</div>
+                    </div>
+                    <button class="wl-remove" onclick="handleRemoveWL('${code}', '${(name || code).replace(/'/g, "\\'")}')" title="移出自选">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+                <div style="font-family:var(--font-mono);font-size:12px;color:var(--text-muted);text-align:center;padding:12px 0;">估值数据暂时不可用</div>
+            </div>`;
+        }
+
+        function renderWatchlistCard(data, idx) {
+            const cc = getChangeClass(data.gszzl);
+            const pct = parseFloat(data.gszzl) || 0;
+            const barWidth = Math.min(Math.abs(pct) * 15, 100);
+            const barColor = pct > 0 ? 'var(--red)' : pct < 0 ? 'var(--green)' : 'var(--text-muted)';
+            const escapedName = (data.name || '').replace(/'/g, "\\'");
+
+            return `<div class="watchlist-card" style="animation-delay:${idx * 0.03}s">
+                <div class="wl-top">
+                    <div>
+                        <div class="wl-name" onclick="selectSearchResult('${data.fundcode}')" title="${data.name}">${data.name}</div>
+                        <div class="wl-code">${data.fundcode}</div>
+                    </div>
+                    <div class="wl-top-right">
+                        <div class="wl-change ${cc}">${formatPercent(data.gszzl)}</div>
+                        <button class="wl-remove" onclick="handleRemoveWL('${data.fundcode}', '${escapedName}')" title="移出自选">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="wl-mid">
+                    <span>净值 ${data.dwjz || '--'}</span>
+                    <span>估值 ${data.gsz || '--'}</span>
+                </div>
+                <div class="wl-bottom">
+                    <div class="wl-bar-wrap">
+                        <div class="wl-bar" style="width:${barWidth}%;background:${barColor};"></div>
+                    </div>
+                    <div class="wl-time">${data.gztime || ''}</div>
+                </div>
+            </div>`;
+        }
+
+        async function refreshWatchlist(silent) {
+            const list = getWatchlist();
+            if (list.length === 0) return;
+
+            const grid = $('watchlistGrid');
+            if (!grid) return;
+
+            if (!silent) {
+                grid.innerHTML = list.map(f => renderWLSkeleton(f.code)).join('');
+            }
+
+            try {
+                const funds = await fetchMultipleFunds(list.map(f => f.code));
+                const dataMap = {};
+                funds.forEach(d => { dataMap[d.fundcode] = d; });
+
+                grid.innerHTML = list.map((f, i) => {
+                    const d = dataMap[f.code];
+                    if (d) return renderWatchlistCard(d, i);
+                    return renderWLPlaceholder(f.code, f.name);
+                }).join('');
+
+                if (!silent) showToast('自选基金估值已刷新');
+            } catch (err) {
+                if (!silent) showToast('刷新失败：' + err.message);
+            }
+        }
+
+        function handleRemoveWL(code, name) {
+            showConfirm(
+                '移出自选',
+                `确定将「${name}」(${code}) 从自选列表中移除？`,
+                () => {
+                    removeFromWatchlist(code);
+                    showToast(`已移出 ${name}`);
+                    updateStarButtons();
+                    // 如果当前展示的是该基金详情，也更新按钮状态
+                    if ($('fundDetail').style.display !== 'none') updateStarButtons();
+                }
+            );
+        }
+
+        function confirmClearWatchlist() {
+            const count = getWatchlist().length;
+            if (count === 0) { showToast('自选列表已为空'); return; }
+            showConfirm(
+                '清空自选',
+                `确定清空全部 ${count} 只自选基金？此操作不可撤销。`,
+                () => { clearWatchlist(); showToast('自选列表已清空'); updateStarButtons(); }
+            );
+        }
+
+
+        // ============================================================
+        //  Confirm Dialog
+        // ============================================================
+
+        function showConfirm(title, message, onConfirm) {
+            const overlay = document.createElement('div');
+            overlay.className = 'confirm-overlay';
+            overlay.innerHTML = `
+                <div class="confirm-box">
+                    <h4>${title}</h4>
+                    <p>${message}</p>
+                    <div class="confirm-actions">
+                        <button class="btn-confirm" id="confirmCancel">取消</button>
+                        <button class="btn-confirm-danger" id="confirmOk">确定</button>
+                    </div>
+                </div>`;
+            document.body.appendChild(overlay);
+
+            overlay.querySelector('#confirmCancel').onclick = () => overlay.remove();
+            overlay.querySelector('#confirmOk').onclick = () => { overlay.remove(); onConfirm(); };
+            overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+        }
+
+
+        // ============================================================
+        //  搜索建议 UI 控制器
+        // ============================================================
+
+        const $ = (id) => document.getElementById(id);
+        let searchTimer = null;
+        let activeIndex = -1;
+        let currentResults = [];
+
+        $('searchInput').addEventListener('input', function () {
+            const val = this.value.trim();
+            clearTimeout(searchTimer);
+            activeIndex = -1;
+            if (!val) { hideDropdown(); return; }
+            if (/^\d{6}$/.test(val)) { hideDropdown(); return; }
+            searchTimer = setTimeout(() => fetchSuggestions(val), 300);
+        });
+
+        $('searchInput').addEventListener('keydown', function (e) {
+            const dropdown = $('searchDropdown');
+            const items = dropdown.querySelectorAll('.search-result-item');
+            const isOpen = dropdown.classList.contains('show');
+
+            if (e.key === 'Escape') { hideDropdown(); return; }
+
+            if (e.key === 'ArrowDown' && isOpen) {
+                e.preventDefault();
+                activeIndex = Math.min(activeIndex + 1, items.length - 1);
+                updateActiveItem(items);
+                return;
+            }
+
+            if (e.key === 'ArrowUp' && isOpen) {
+                e.preventDefault();
+                activeIndex = Math.max(activeIndex - 1, 0);
+                updateActiveItem(items);
+                return;
+            }
+
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (isOpen && activeIndex >= 0 && items[activeIndex]) {
+                    items[activeIndex].click();
+                } else {
+                    handleSearch();
+                }
+            }
+        });
+
+        function updateActiveItem(items) {
+            items.forEach((item, i) => item.classList.toggle('active', i === activeIndex));
+            if (items[activeIndex]) items[activeIndex].scrollIntoView({ block: 'nearest' });
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!$('searchSection').contains(e.target)) hideDropdown();
+        });
+
+        async function fetchSuggestions(keyword) {
+            const list = $('searchList');
+            const dropdown = $('searchDropdown');
+
+            list.innerHTML = `<div class="search-dropdown-loading"><div class="loader-spinner"></div><span>搜索 "${keyword}" ...</span></div>`;
+            $('resultCount').textContent = '';
+            dropdown.classList.add('show');
+
+            try {
+                const results = await searchFunds(keyword);
+                currentResults = results;
+
+                if (!results || results.length === 0) {
+                    list.innerHTML = `<div class="search-dropdown-empty">未找到与 "${keyword}" 相关的基金</div>`;
+                    $('resultCount').textContent = '0';
+                    return;
+                }
+
+                const typeMap = {
+                    '1': '股票型', '2': '混合型', '3': '债券型', '4': '指数型',
+                    '5': '保本型', '6': 'ETF', '7': 'QDII', '8': 'LOF',
+                    '9': '货币型', '10': '理财型', '11': '联接基金'
+                };
+
+                const display = results.slice(0, 12);
+                $('resultCount').textContent = `${display.length}/${results.length}`;
+
+                list.innerHTML = display.map((item, index) => {
+                    const name = highlightMatch(item.NAME || '', keyword);
+                    const code = item.CODE || '';
+                    const type = typeMap[item.FundBaseInfo?.FTYPE] || item.FundBaseInfo?.FTYPE || '';
+                    const starred = isInWatchlist(code);
+                    const starSvg = starred
+                        ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="var(--star-on)" stroke="var(--star-on)" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
+                        : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+
+                    return `
+                        <div class="search-result-item" data-code="${code}" data-index="${index}" onclick="selectSearchResult('${code}')">
+                            <div class="result-info">
+                                <div class="result-name">${name}</div>
+                                <div class="result-meta">${code}${item.JJGS ? ' · ' + item.JJGS : ''}</div>
+                            </div>
+                            ${type ? `<span class="result-type">${type}</span>` : ''}
+                            <button class="btn-star ${starred ? 'is-starred' : ''}" data-wl-code="${code}"
+                                onclick="event.stopPropagation();toggleWatchlist('${code}','${(item.NAME || '').replace(/'/g, "\\'")}');fetchSuggestions($('searchInput').value.trim());"
+                                style="margin-left:8px;padding:6px;border-radius:6px;background:transparent;border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;"
+                                title="${starred ? '移出自选' : '加入自选'}">
+                                ${starSvg}
+                            </button>
+                        </div>`;
+                }).join('');
+
+            } catch (err) {
+                list.innerHTML = `<div class="search-dropdown-empty">搜索请求失败：${err.message}</div>`;
+            }
+        }
+
+        function highlightMatch(text, keyword) {
+            if (!keyword) return text;
+            const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`(${escaped})`, 'gi');
+            return text.replace(regex, '<em>$1</em>');
+        }
+
+        function selectSearchResult(code) {
+            $('searchInput').value = code;
+            hideDropdown();
+            searchFund(code);
+        }
+
+        function hideDropdown() {
+            $('searchDropdown').classList.remove('show');
+            activeIndex = -1;
+        }
+
+
+        // ============================================================
+        //  主业务逻辑
+        // ============================================================
+
+        const POPULAR_FUNDS = [
+            '000001', '110011', '161725', '001632',
+            '003834', '163406', '005827', '320007',
+            '001938', '162605', '260108', '000961'
+        ];
+
+        function getChangeClass(val) {
+            const n = parseFloat(val);
+            if (isNaN(n) || n === 0) return 'c-flat';
+            return n > 0 ? 'c-up' : 'c-down';
+        }
+
+        function formatPercent(val) {
+            const n = parseFloat(val);
+            if (isNaN(n)) return '--';
+            return (n > 0 ? '+' : '') + n.toFixed(2) + '%';
+        }
+
+        function showToast(msg, type) {
+            const t = $('toast');
+            t.textContent = msg;
+            t.className = 'toast show' + (type === 'success' ? ' toast-success' : type === 'warn' ? ' toast-warn' : '');
+            setTimeout(() => t.className = 'toast', 3000);
+        }
+
+        function showLoader(s) { $('loader').style.display = s ? 'block' : 'none'; }
+        function showError(msg) { $('errorContainer').innerHTML = msg ? `<div class="error-msg">${msg}</div>` : ''; }
+
+        function getStarSvg(filled) {
+            if (filled) return '<svg viewBox="0 0 24 24" fill="var(--star-on)" stroke="var(--star-on)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+            return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+        }
+
+        async function handleSearch() {
+            const val = $('searchInput').value.trim();
+            showError('');
+            if (!val) { showError('请输入基金代码或名称'); return; }
+
+            if (/^\d{6}$/.test(val)) { searchFund(val); return; }
+
+            showLoader(true);
+            hideDropdown();
+            $('fundDetail').style.display = 'none';
+            $('historySection').style.display = 'none';
+
+            try {
+                const results = await searchFunds(val);
+                if (!results || results.length === 0) {
+                    showError(`未找到与 "${val}" 相关的基金，请尝试其他关键词`);
+                    return;
+                }
+                if (results.length === 1) { await searchFund(results[0].CODE); return; }
+                currentResults = results;
+                renderSearchResults(results, val);
+            } catch (err) {
+                showError('搜索失败：' + err.message);
+            } finally {
+                showLoader(false);
+            }
+        }
+
+        function renderSearchResults(results, keyword) {
+            const list = $('searchList');
+            const dropdown = $('searchDropdown');
+            const display = results.slice(0, 20);
+            $('resultCount').textContent = `${display.length}/${results.length}`;
+
+            const typeMap = {
+                '1': '股票型', '2': '混合型', '3': '债券型', '4': '指数型',
+                '5': '保本型', '6': 'ETF', '7': 'QDII', '8': 'LOF',
+                '9': '货币型', '10': '理财型', '11': '联接基金'
+            };
+
+            list.innerHTML = display.map((item, i) => {
+                const name = highlightMatch(item.NAME || '', keyword);
+                const code = item.CODE || '';
+                const type = typeMap[item.FundBaseInfo?.FTYPE] || '';
+                const starred = isInWatchlist(code);
+                const starSvg = starred
+                    ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="var(--star-on)" stroke="var(--star-on)" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
+                    : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+
+                return `
+                    <div class="search-result-item" data-code="${code}" onclick="selectSearchResult('${code}')">
+                        <div class="result-info">
+                            <div class="result-name">${name}</div>
+                            <div class="result-meta">${code}${item.JJGS ? ' · ' + item.JJGS : ''}</div>
+                        </div>
+                        ${type ? `<span class="result-type">${type}</span>` : ''}
+                        <button class="btn-star ${starred ? 'is-starred' : ''}" data-wl-code="${code}"
+                            onclick="event.stopPropagation();toggleWatchlist('${code}','${(item.NAME || '').replace(/'/g, "\\'")}');renderSearchResults(currentResults,'${keyword.replace(/'/g, "\\'")}');"
+                            style="margin-left:8px;padding:6px;border-radius:6px;background:transparent;border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;"
+                            title="${starred ? '移出自选' : '加入自选'}">
+                            ${starSvg}
+                        </button>
+                    </div>`;
+            }).join('');
+
+            dropdown.classList.add('show');
+        }
+
+        async function searchFund(code) {
+            showError('');
+            hideDropdown();
+            $('fundDetail').style.display = 'none';
+            $('historySection').style.display = 'none';
+            showLoader(true);
+
+            try {
+                const data = await fetchFundEstimate(code);
+                if (!data || !data.fundcode) throw new Error('未找到该基金，请检查代码是否正确');
+
+                $('fundDetail').innerHTML = renderFundDetail(data);
+                $('fundDetail').style.display = 'block';
+                showToast(`已加载 ${data.name} (${data.fundcode})`);
+                $('fundDetail').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } catch (err) {
+                showError(err.message);
+            } finally {
+                showLoader(false);
+            }
+        }
+
+        async function loadHistory(fundCode) {
+            $('historySection').style.display = 'block';
+            $('historySection').innerHTML = '<div class="loader"><div class="loader-spinner"></div><span>加载历史净值...</span></div>';
+            try {
+                const data = await fetchFundHistory(fundCode, 1, 10);
+                $('historySection').innerHTML = renderHistoryTable(data, fundCode);
+            } catch (err) {
+                $('historySection').innerHTML = `<div class="error-msg">历史净值加载失败：${err.message}</div>`;
+            }
+        }
+
+        async function refreshFund(code) {
+            showLoader(true);
+            try {
+                const data = await fetchFundEstimate(code);
+                $('fundDetail').innerHTML = renderFundDetail(data);
+                showToast('估值数据已刷新');
+            } catch (err) { showError('刷新失败：' + err.message); }
+            finally { showLoader(false); }
+        }
+
+
+        // ============================================================
+        //  渲染函数
+        // ============================================================
+
+        function renderFundDetail(data) {
+            const cc = getChangeClass(data.gszzl);
+            const starred = isInWatchlist(data.fundcode);
+            const escapedName = (data.name || '').replace(/'/g, "\\'");
+
+            return `
+                <div class="fund-detail">
+                    <div class="fund-detail-header">
+                        <div class="fund-name-group">
+                            <h2>${data.name || '未知基金'}</h2>
+                            <div class="fund-code">${data.fundcode} · 天天基金</div>
+                        </div>
+                        <div class="fund-price-block">
+                            <div class="label">实时估值 (T日)</div>
+                            <div class="value ${cc}">${data.gsz || '--'}</div>
+                        </div>
+                    </div>
+                    <div class="fund-metrics">
+                        <div class="metric-card">
+                            <div class="metric-label">估算涨跌幅</div>
+                            <div class="metric-value ${cc}">${formatPercent(data.gszzl)}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">昨日净值</div>
+                            <div class="metric-value">${data.dwjz || '--'}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">净值日期</div>
+                            <div class="metric-value" style="font-family:var(--font-mono);font-size:16px;color:var(--text-secondary)">${data.jzrq || '--'}</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">估值时间</div>
+                            <div class="metric-value" style="font-family:var(--font-mono);font-size:16px;color:var(--text-secondary)">${data.gztime || '--'}</div>
+                        </div>
+                    </div>
+                    <div class="fund-actions">
+                        <button class="btn-secondary btn-star ${starred ? 'is-starred' : ''}" data-wl-code="${data.fundcode}"
+                            onclick="toggleWatchlist('${data.fundcode}','${escapedName}')">
+                            ${getStarSvg(starred)}
+                            <span class="star-label">${starred ? '已自选' : '加入自选'}</span>
+                        </button>
+                        <button class="btn-secondary" onclick="loadHistory('${data.fundcode}')">查看历史净值</button>
+                        <button class="btn-secondary" onclick="refreshFund('${data.fundcode}')">刷新估值</button>
+                    </div>
+                </div>`;
+        }
+
+        function renderHistoryTable(historyData, fundCode) {
+            if (!historyData?.Data?.LSJZList?.length) return '<div class="error-msg">暂无历史净值数据</div>';
+            const rows = historyData.Data.LSJZList.map(item => {
+                const r = parseFloat(item.JZZZL);
+                const cc = isNaN(r) || r === 0 ? 'c-flat' : r > 0 ? 'c-up' : 'c-down';
+                return `<tr><td>${item.FSRQ}</td><td>${item.DWJZ}</td><td>${item.LJJZ}</td><td class="${cc}">${isNaN(r) ? '--' : (r > 0 ? '+' : '') + r.toFixed(2) + '%'}</td></tr>`;
+            }).join('');
+            return `
+                <div class="section-title"><h3>历史净值 · ${fundCode}</h3><div class="line"></div></div>
+                <div class="history-table-wrap">
+                    <table class="history-table">
+                        <thead><tr><th>日期</th><th>单位净值</th><th>累计净值</th><th>日涨跌幅</th></tr></thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>`;
+        }
+
+        function renderPopularCard(data) {
+            const cc = getChangeClass(data.gszzl);
+            return `
+                <div class="popular-card" onclick="selectSearchResult('${data.fundcode}')">
+                    <div class="popular-card-top">
+                        <div>
+                            <div class="name" title="${data.name}">${data.name}</div>
+                            <div class="code">${data.fundcode}</div>
+                        </div>
+                        <div class="change ${cc}">${formatPercent(data.gszzl)}</div>
+                    </div>
+                    <div class="popular-card-bottom">
+                        <span>净值 ${data.dwjz}</span>
+                        <span>估值 ${data.gsz}</span>
+                        <span>${data.gztime || ''}</span>
+                    </div>
+                </div>`;
+        }
+
+
+        // ============================================================
+        //  初始化
+        // ============================================================
+
+        async function initPopularFunds() {
+            const grid = $('popularGrid');
+            grid.innerHTML = '<div class="loader"><div class="loader-spinner"></div><span>加载热门基金数据...</span></div>';
+            try {
+                const funds = await fetchMultipleFunds(POPULAR_FUNDS);
+                grid.innerHTML = funds.length ? funds.map(renderPopularCard).join('') : '<div class="error-msg">加载失败</div>';
+            } catch (err) {
+                grid.innerHTML = `<div class="error-msg">${err.message}</div>`;
+            }
+        }
+
+        function updateClock() {
+            $('currentTime').textContent = new Date().toLocaleString('zh-CN', {
+                year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit', second: '2-digit'
+            });
+        }
+
+        updateClock();
+        setInterval(updateClock, 1000);
+        renderWatchlist();
+        initPopularFunds();
+    </script>
+</body>
+
+</html>

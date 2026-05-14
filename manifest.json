@@ -8,12 +8,12 @@
   "description": "我的个人主页",
   "icons": [
     {
-      "src": "/icon-192x192.png",
+      "src": "https://tse1-mm.cn.bing.net/th/id/OIP-C.v2oANx86DIzTQrxI3C9-XgHaEJ?w=276&h=180&c=7&r=0&o=7&dpr=1.5&pid=1.7&rm=3",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/icon-512x512.png",
+      "src": "https://tse1-mm.cn.bing.net/th/id/OIP-C.StrDRqennoZNbzSPZapKZwHaEJ?w=276&h=180&c=7&r=0&o=7&dpr=1.5&pid=1.7&rm=3",
       "sizes": "512x512",
       "type": "image/png"
     }

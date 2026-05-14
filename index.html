@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>基金数据中心</title>
     <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#000000">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -1359,17 +1360,10 @@
     <div class="toast" id="toast"></div>
 
     <script>
-       if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js')
-        .then((registration) => {
-          console.log('SW registered: ', registration);
-        })
-        .catch((registrationError) => {
-          console.log('SW registration failed: ', registrationError);
-        });
-    });
+      if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
   }
+
         // ============================================================
         //  API 服务层
         // ============================================================
